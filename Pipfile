@@ -12,6 +12,7 @@ python-decouple = "*"
 django-cors-headers = "*"
 dj-database-url = "*"
 django-rest-framework = "*"
+gunicorn = "*"
 
 [dev-packages]
 
