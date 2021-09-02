@@ -11,6 +11,7 @@ django-heroku = "*"
 python-decouple = "*"
 django-cors-headers = "*"
 dj-database-url = "*"
+django-rest-framework = "*"
 
 [dev-packages]
 
