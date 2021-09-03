@@ -128,7 +128,7 @@ USE_TZ = True
 
 STATIC_URL = 'build/static/'
 
-STATIC_ROOT = BASE_DIR/'build'/'staticfiles'
+STATIC_ROOT = BASE_DIR/'build'/'static'
 STATICFILES_DIRS = [BASE_DIR/'build/static/']
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
