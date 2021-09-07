@@ -1,5 +1,12 @@
 import requests
 import re
+import urllib3
+import csv
+
+
+def update_covid_dataa():
+
+
 
 def update_covid_data():
     res = requests.get("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/09-02-2021.csv")
