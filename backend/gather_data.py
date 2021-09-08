@@ -7,9 +7,19 @@ import csv
 def update_covid_data():
     start_date = '01-01-2020'
 
+    '''
+    Github CSV columns:
+    2020-01-01 - 2020-xx-xx: 6
+    2020-
 
-    res = urllib.request.urlopen(
-        "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/09-02-2021.csv")
+    '''
+
+    try:
+        res = urllib.request.urlopen(
+            "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/02-28-2020.csv")
+    except urllib.error.HTTPError:
+        return '404!'
+
 
     lines = [l.decode('utf-8') for l in res.readlines()]
 
@@ -32,61 +42,16 @@ def update_covid_data():
 
     count = 0
     for row in raw_data:
-        if count == 0:
+        if not count:
             count += 1
             continue
-        elif count > 10:
+        elif count == 2:
             break
-
-        data |= {
-            row[field_indices['country']]: {
-                'states_provinces': {},
-                'lat': None,
-                'long': None,
-                'covid': {}
-            }
-        }
-
-        country = data.get(row[field_indices['country']])
-
-        if row[field_indices['state_province']]:
-            country['states_provinces'].setdefault(
-                row[field_indices['state_province']],
-                {
-                    'lat': row[field_indices['lat']],
-                    'lng': row[field_indices['lng']]
-                }
-            )
+        
+        print(len(row))
 
         count += 1
-
-        '''
-        countries = {
-            <COUNTRY_NAME>: {
-                lat,
-                lng,
-                covid: {},
-                states_provinces: {
-                    <NAME>: {
-                        lat,
-                        lng,
-                        covid: {
-                            date:{
-                                confirmed, deaths, recovered, active, incident_rate, case_fatality_ratio
-                            }, 
-                            ... other dates
-                        },
-                    }, 
-                    ... other states/provinces
-                }
-            }
-        }
-        '''
-
-        # for index in field_indices:
-        #     data[row[3]].update({labels[index]: row[index]})
-
-    print(data)
+    
 
 
-update_covid_data()
+print(update_covid_data())
