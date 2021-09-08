@@ -6,3 +6,5 @@ class CovidDatumCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = CovidDatum
         fields = '__all__'
+
+    
