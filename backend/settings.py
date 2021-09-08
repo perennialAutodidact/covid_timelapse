@@ -38,6 +38,10 @@ INSTALLED_APPS = [
 
     'rest_framework',
     'corsheaders',
+
+    'countries',
+    'state_provinces',
+    'covid_data',
 ]
 
 MIDDLEWARE = [
@@ -75,10 +79,6 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
-if not DEBUG:
-    DATABASE_URL = decouple.config('DATABASE_URL')
-
-    conn = psycopg2.connect(DATABASE_URL, sslmode='require')
 
 DATABASES = {
     'default': {
@@ -86,8 +86,12 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+if not DEBUG:
+    DATABASE_URL = decouple.config('DATABASE_URL')
 
-DATABASES['default'] = dj_database_url.config(conn_max_age=600, ssl_require=True)
+    conn = psycopg2.connect(DATABASE_URL, sslmode='require')
+
+    DATABASES['default'] = dj_database_url.config(conn_max_age=600, ssl_require=True)
 
 
 # Password validation

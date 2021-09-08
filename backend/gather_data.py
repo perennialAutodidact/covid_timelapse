@@ -1,43 +1,72 @@
 import requests
 import re
-import urllib3
+import urllib.request
 import csv
 
 
-def update_covid_dataa():
-
-
-
 def update_covid_data():
-    res = requests.get("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/09-02-2021.csv")
-
-    res = res.text.split('\n')
-
-    labels = re.split(r',(?=\S)', res[0])
+    start_date = '01-01-2020'
 
 
-    data={}
-    field_indices = [2, 4, 5, 6, 7, 8, 9, 10, 12, 13]
+    res = urllib.request.urlopen(
+        "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/09-02-2021.csv")
 
-    for row in res[1:-1]:
-        row = re.split(r',(?=\S)|,$', row)
+    lines = [l.decode('utf-8') for l in res.readlines()]
+
+    raw_data = csv.reader(lines)
+
+    data = {}
+    field_indices = {
+        'state_province': 2,
+        'country': 3,
+        'last_updated': 4,
+        'lat': 5,
+        'lng': 6,
+        'confirmed': 7,
+        'deaths': 8,
+        'recovered': 9,
+        'active': 10,
+        'incident_rate': 12,
+        'fatality_ratio': 13
+    }
+
+    count = 0
+    for row in raw_data:
+        if count == 0:
+            count += 1
+            continue
+        elif count > 10:
+            break
 
         data |= {
-            row[3]: {
-                'states_provinces':{},
+            row[field_indices['country']]: {
+                'states_provinces': {},
                 'lat': None,
                 'long': None,
                 'covid': {}
             }
         }
-        
+
+        country = data.get(row[field_indices['country']])
+
+        if row[field_indices['state_province']]:
+            country['states_provinces'].setdefault(
+                row[field_indices['state_province']],
+                {
+                    'lat': row[field_indices['lat']],
+                    'lng': row[field_indices['lng']]
+                }
+            )
+
+        count += 1
+
         '''
         countries = {
             <COUNTRY_NAME>: {
                 lat,
                 lng,
-                covid: {}
-                'states_provinces': {
+                covid: {},
+                states_provinces: {
                     <NAME>: {
                         lat,
                         lng,
@@ -45,7 +74,7 @@ def update_covid_data():
                             date:{
                                 confirmed, deaths, recovered, active, incident_rate, case_fatality_ratio
                             }, 
-                            ... other dates                           
+                            ... other dates
                         },
                     }, 
                     ... other states/provinces
@@ -54,12 +83,10 @@ def update_covid_data():
         }
         '''
 
-
         # for index in field_indices:
         #     data[row[3]].update({labels[index]: row[index]})
-        
-        print(data)
 
-        exit()
+    print(data)
+
 
 update_covid_data()

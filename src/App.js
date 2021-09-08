@@ -1,6 +1,7 @@
 import "./App.css";
 
 import { Scene } from "@esri/react-arcgis";
+import Marker from "./components/Marker";
 
 function App() {
   return (
@@ -12,7 +13,9 @@ function App() {
           center: [-122.4443, 47.2529],
           zoom: 6,
         }}
-      />
+      >
+        <Marker lat={-122.4443} lng={47.2529} />
+      </Scene>
     </div>
   );
 }
