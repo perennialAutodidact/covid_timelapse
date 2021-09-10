@@ -39,8 +39,6 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
 
-    'countries',
-    'state_provinces',
     'covid_data',
 ]
 
