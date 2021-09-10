@@ -182,11 +182,14 @@ class Command(BaseCommand):
                 print(f"Already in DB: {country}")
                 continue
             else:
-                Country.objects.create(
+                new_country = Country.objects.create(
                     name=country_name
                     latitude=row[field_indices['latitude']]
                     longitude=row[field_indices['longitude']]
                 )
+
+                
+
 
 
             # print(row)
