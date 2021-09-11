@@ -2,6 +2,7 @@ from django.core.management.base import BaseCommand
 import urllib.request
 import csv
 from datetime import date, timedelta
+from decimal import Decimal
 
 from covid_data.models import Country, StateProvince, CovidDatum
 from covid_data.serializers import CountrySerializer, StateProvinceSerializer, CovidDatumSerializer
@@ -14,6 +15,8 @@ BASE_URL = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/css
 COUNTRY_NAMES = {
     'US': 'United States'
 }
+
+
 def open_csv(url):
     '''Open a CSV file at a particular web address and return its contents as a list of lines'''
     print('url', url)
@@ -123,19 +126,18 @@ def get_field_indices(number_of_fields):
 def should_skip_record(row, field_indices):
     '''
     Some records need to be skipped because they 
-        a) aren't countries/states/provinces 
-        b) are missing fields
+        a) aren't countries/states/provinces (Diamond Princess Cruise Ship, Summer Olympics 2020, etc)
+        b) are missing latitude/longitude fields
     '''
     EXCLUDED_REGIONS = [
         'diamond princess',
         'summer olympics',
+        'ms zaandam'
     ]
     for region in EXCLUDED_REGIONS:
-        if region in row[field_indices['country']].lower() \
-            or region in row[field_indices['state_province']].lower() \
-            or not row[field_indices['latitude']] \
-            or not row[field_indices['longitude']]:
-                return True
+        if region in row[field_indices['country']].lower(): 
+            print(row)
+            return True
 
     return False
 
@@ -153,7 +155,7 @@ class Command(BaseCommand):
         if not raw_data:
             return
 
-        country_names=[]
+        country_names = []
         row_count = 0
         for row in raw_data:
             if row_count == 0:
@@ -161,36 +163,72 @@ class Command(BaseCommand):
                 row_count += 1
                 continue
 
-            if should_skip_record(row, field_indices):
-                # print(row)
-                continue
+            if should_skip_record(row, field_indices): continue
 
             country_name = row[field_indices['country']]
-
-            if 'Guinea' in country_name:
-                print(country_name)
-
+            # Regulate a few country names to match data sets
             if country_name not in country_names:
                 if country_name == 'Taiwan*':
                     country_name = 'Taiwan'
                 country_names.append(country_name)
 
+            if country_name == 'US':
+                country_name = 'United States'
+
+            latitude=row[field_indices['latitude']]
+            longitude=row[field_indices['longitude']]
+
+            if not latitude or not longitude:
+                state_province_name = row[field_indices['state_province']]
+
+                if state_province_name in state_coordinates.keys():
+                    latitude = state_coordinates.get(state_province_name)['latitude']
+                    longitude = state_coordinates.get(state_province_name)['longitude']
+                else:
+                    country_coords =  country_coordinates.get(country_name)
+
+                    if not country_coords:
+                        print(row)
+                        continue
+
+                    latitude = country_coords['latitude']
+                    longitude = country_coords['longitude']
+
+                row[field_indices['latitude']] = latitude
+                row[field_indices['longitude']] = longitude
+
 
             country = Country.objects.filter(name=country_name)
-
-            if country:
-                print(f"Already in DB: {country}")
-                continue
-            else:
+            if not country:
                 new_country = Country.objects.create(
-                    name=country_name
-                    latitude=row[field_indices['latitude']]
-                    longitude=row[field_indices['longitude']]
+                    name=country_name,
+                    latitude=Decimal(row[field_indices['latitude']]),
+                    longitude=Decimal(row[field_indices['longitude']])
                 )
 
-                
 
+            state_province_name = row[field_indices['state_province']]
+            
+            if state_province_name:
+                state_province = StateProvince.objects.filter(
+                    name=state_province_name)
 
+                if not state_province:
+                    country_name = row[field_indices['country']]
+                    if country_name == 'US':
+                        country_name = 'United States'
+
+                    country_of_origin = Country.objects.filter(name=country_name).first()
+
+                    if not country_of_origin:
+                        print(state_province_name, country_name)
+
+                    new_state_province = StateProvince.objects.create(
+                        name=state_province_name,
+                        latitude=row[field_indices['latitude']],
+                        longitude=row[field_indices['longitude']],
+                        country_of_origin = country_of_origin or None
+                    )
 
             # print(row)
         row_count += 1

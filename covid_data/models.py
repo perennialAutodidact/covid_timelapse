@@ -2,32 +2,48 @@ from django.db import models
 from django.db.models.fields.related import ForeignKey
 from django.utils.translation import activate, gettext as _
 
+
 class LocationModel(models.Model):
     name = models.CharField(_('name'), max_length=256)
     latitude = models.DecimalField(
         _('latitude'),
-        max_digits=10,
+        max_digits=20,
         decimal_places=10
     )
     longitude = models.DecimalField(
         _('longitude'),
-        max_digits=10,
+        max_digits=20,
         decimal_places=10
     )
 
 
 class Country(LocationModel):
+    class Meta:
+        verbose_name_plural = 'countries'
     has_state_provinces = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.name
 
 
 class StateProvince(LocationModel):
+    class Meta:
+        verbose_name_plural = 'States/Provinces'
+    
     country_of_origin = ForeignKey(
         _('country'),
         on_delete=models.CASCADE
     )
 
+    def __str__(self):
+        return self.name
+
 
 class CovidDatum(models.Model):
+
+    class Meta:
+        verbose_name_plural = 'Covid Data'
+
     country = ForeignKey(
         Country,
         on_delete=models.CASCADE,
@@ -63,3 +79,12 @@ class CovidDatum(models.Model):
         null=True,
         blank=True
     )
+
+    def __str__(self) -> str:
+        location = ''
+        
+        location += self.country or ''
+        
+        location += self.state_province or ''
+        
+        return f"{self.date} - {location}"
