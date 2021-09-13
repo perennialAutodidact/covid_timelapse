@@ -60,31 +60,31 @@ class CovidDatum(models.Model):
 
     date = models.DateField(_('date'))
 
-    confirmed = models.IntegerField(_('confirmed'))
-    deaths = models.IntegerField(_('deaths'))
-    recovered = models.IntegerField(_('recovered'))
-    active = models.IntegerField(_('active'))
+    confirmed = models.IntegerField(_('confirmed'), default=0)
+    deaths = models.IntegerField(_('deaths'), default=0)
+    recovered = models.IntegerField(_('recovered'), default=0)
+    active = models.IntegerField(_('active'), default=0)
 
     incident_rate = models.DecimalField(
         _('incident rate'),
-        max_digits=10,
+        max_digits=20,
         decimal_places=10,
-        null=True,
-        blank=True
+        default=0.0
     )
     fatality_ratio = models.DecimalField(
         _('fatality ratio'),
-        max_digits=10,
+        max_digits=20,
         decimal_places=10,
-        null=True,
-        blank=True
+        default=0.0
     )
 
     def __str__(self) -> str:
         location = ''
         
-        location += self.country or ''
-        
-        location += self.state_province or ''
+        if self.state_province:
+            location += f"{self.state_province.name},"
+            
+        location += self.country.name
+
         
         return f"{self.date} - {location}"
