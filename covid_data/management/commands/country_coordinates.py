@@ -187,11 +187,11 @@ country_coordinates = {
         "latitude": -12.1667,
         "longitude": 44.25
     },
-    "Congo": {
+    "Congo (Brazzaville)": {
         "latitude": -1,
         "longitude": 15
     },
-    "Congo, the Democratic Republic of the": {
+    "Congo (Kinshasa)": {
         "latitude": 0,
         "longitude": 25
     },
@@ -219,7 +219,7 @@ country_coordinates = {
         "latitude": 35,
         "longitude": 33
     },
-    "Czech Republic": {
+    "Czechia": {
         "latitude": 49.75,
         "longitude": 15.5
     },
@@ -451,11 +451,11 @@ country_coordinates = {
         "latitude": 1.4167,
         "longitude": 173
     },
-    "Korea, Democratic People's Republic of": {
+    "Korea, South": {
         "latitude": 40,
         "longitude": 127
     },
-    "Korea, Republic of": {
+    "Korea, North": {
         "latitude": 37,
         "longitude": 127.5
     },
@@ -467,7 +467,7 @@ country_coordinates = {
         "latitude": 41,
         "longitude": 75
     },
-    "Lao People's Democratic Republic": {
+    "Laos": {
         "latitude": 18,
         "longitude": 105
     },
