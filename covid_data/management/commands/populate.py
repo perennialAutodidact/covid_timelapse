@@ -12,10 +12,6 @@ from .country_coordinates import country_coordinates
 
 BASE_URL = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports"
 
-COUNTRY_NAMES = {
-    'US': 'United States'
-}
-
 
 def open_csv(url):
     '''Open a CSV file at a particular web address and return its contents as a list of lines'''
@@ -86,7 +82,7 @@ def get_field_indices(number_of_fields):
     if number_of_fields >= 12:
         field_indices = {
             "fips": 0,
-            "admin2": 1,
+            "city_county": 1,
             "state_province": 2,
             "country": 3,
             "last_update": 4,
@@ -100,7 +96,7 @@ def get_field_indices(number_of_fields):
         }
         if number_of_fields == 14:
             field_indices |= {
-                "incidence_rate": 12,
+                "incident_rate": 12,
                 "fatality_ratio": 13,
             }
 
@@ -135,18 +131,26 @@ def should_skip_record(row, field_indices):
         'ms zaandam'
     ]
     for region in EXCLUDED_REGIONS:
-        if region in row[field_indices['country']].lower(): 
-            print(row)
+        if region in row[field_indices['country']].lower():
             return True
 
     return False
+
+
+STATES_PROVINCES_IGNORE = [
+    'diamond princess',
+    'grand princess',
+    'port quarantine',
+    'recovered',
+    'unknown'
+]
 
 
 class Command(BaseCommand):
     help = "Populate DB with Covid data"
 
     def handle(self, *args, **options):
-        file_date = daterange_start = date(year=2021, month=9, day=8)
+        file_date = date(year=2021, month=9, day=9)
         url_date = file_date.strftime('%m-%d-%Y')
         url = f"{BASE_URL}/{url_date}.csv"
 
@@ -163,7 +167,8 @@ class Command(BaseCommand):
                 row_count += 1
                 continue
 
-            if should_skip_record(row, field_indices): continue
+            if should_skip_record(row, field_indices):
+                continue
 
             country_name = row[field_indices['country']]
             # Regulate a few country names to match data sets
@@ -172,24 +177,23 @@ class Command(BaseCommand):
                     country_name = 'Taiwan'
                 country_names.append(country_name)
 
+            # 'US' is the key in the CSV, 'United States' is the name in the DB
             if country_name == 'US':
                 country_name = 'United States'
 
-            latitude=row[field_indices['latitude']]
-            longitude=row[field_indices['longitude']]
+            latitude = row[field_indices['latitude']]
+            longitude = row[field_indices['longitude']]
 
             if not latitude or not longitude:
                 state_province_name = row[field_indices['state_province']]
 
-                if state_province_name in state_coordinates.keys():
-                    latitude = state_coordinates.get(state_province_name)['latitude']
-                    longitude = state_coordinates.get(state_province_name)['longitude']
+                if state_province_name.title() in state_coordinates.keys():
+                    latitude = state_coordinates.get(
+                        state_province_name)['latitude']
+                    longitude = state_coordinates.get(
+                        state_province_name)['longitude']
                 else:
-                    country_coords =  country_coordinates.get(country_name)
-
-                    if not country_coords:
-                        print(row)
-                        continue
+                    country_coords = country_coordinates.get(country_name)
 
                     latitude = country_coords['latitude']
                     longitude = country_coords['longitude']
@@ -197,8 +201,7 @@ class Command(BaseCommand):
                 row[field_indices['latitude']] = latitude
                 row[field_indices['longitude']] = longitude
 
-
-            country = Country.objects.filter(name=country_name)
+            country = Country.objects.filter(name=country_name).first()
             if not country:
                 new_country = Country.objects.create(
                     name=country_name,
@@ -206,19 +209,20 @@ class Command(BaseCommand):
                     longitude=Decimal(row[field_indices['longitude']])
                 )
 
-
             state_province_name = row[field_indices['state_province']]
-            
             if state_province_name:
                 state_province = StateProvince.objects.filter(
-                    name=state_province_name)
+                    name=state_province_name
+                ).first()
 
-                if not state_province:
+                if not state_province and state_province_name.lower() not in STATES_PROVINCES_IGNORE:
                     country_name = row[field_indices['country']]
                     if country_name == 'US':
                         country_name = 'United States'
 
-                    country_of_origin = Country.objects.filter(name=country_name).first()
+                    country_of_origin = Country.objects.filter(
+                        name=country_name
+                    ).first()
 
                     if not country_of_origin:
                         print(state_province_name, country_name)
@@ -227,8 +231,24 @@ class Command(BaseCommand):
                         name=state_province_name,
                         latitude=row[field_indices['latitude']],
                         longitude=row[field_indices['longitude']],
-                        country_of_origin = country_of_origin or None
+                        country_of_origin=country_of_origin
                     )
 
-            # print(row)
+                city_county = row[field_indices['city_county']]
+                
+                covid_datum = CovidDatum.objects.create(
+                    date=file_date,
+                    country=country,
+                    state_province=state_province,
+                    city_county=city_county or None,
+                    confirmed=row[field_indices['confirmed']] or 0,
+                    deaths=row[field_indices['deaths'] or 0],
+                    recovered=row[field_indices['recovered']] or 0,
+                    active=row[field_indices['active']] or 0,
+                    incident_rate=row[field_indices['incident_rate']] or 0.0,
+                    fatality_ratio=row[field_indices['fatality_ratio']] or 0.0
+                )
+
+                print(covid_datum)
+
         row_count += 1
