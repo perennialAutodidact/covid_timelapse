@@ -56,7 +56,7 @@ class CovidDatum(models.Model):
         null=True,
         blank=True
     )
-    city = models.CharField(_('city'), max_length=256, null=True, blank=True)
+    city_county = models.CharField(_('city'), max_length=256, null=True, blank=True)
 
     date = models.DateField(_('date'))
 
@@ -81,10 +81,12 @@ class CovidDatum(models.Model):
     def __str__(self) -> str:
         location = ''
         
+        if self.city_county:
+            location += f"{self.city_county}, "
+
         if self.state_province:
-            location += f"{self.state_province.name},"
+            location += f"{self.state_province.name} - "
             
         location += self.country.name
-
         
         return f"{self.date} - {location}"
