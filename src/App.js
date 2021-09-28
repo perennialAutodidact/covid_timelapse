@@ -9,7 +9,6 @@ import { unwrapResult } from "@reduxjs/toolkit";
 
 import countryCoordinates from "./app/resources/countryCoordinates";
 import stateCoordinates from "./app/resources/stateCoordinates";
-import { CallMergeSharp } from "@mui/icons-material";
 
 function App() {
   const dispatch = useDispatch();
