@@ -1,14 +1,11 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import dayjs from "dayjs";
 import { styled } from "@mui/system";
 import { withStyles } from "@mui/styles";
-import { createTheme } from "@mui/material/styles";
 import Slider from "@mui/material/Slider";
-import { Button } from "@mui/material";
 import PlayArrow from "@mui/icons-material/PlayArrow";
 import PauseIcon from "@mui/icons-material/Pause";
 
-// import { setViewDate } from "../app/slices/covidSlice";
-import dayjs from "dayjs";
 const TimelineSlider = ({
   percentToEndDate,
   onChange,
@@ -16,9 +13,8 @@ const TimelineSlider = ({
   dateCount,
   totalDays,
 }) => {
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(true);
   const sliderRef = useRef();
-
   const TimelineContainer = styled("div")({
     background: "rgba(50, 50, 50, .5)",
     position: "absolute",
@@ -41,39 +37,18 @@ const TimelineSlider = ({
   const SliderInput = withStyles({
     root: {
       width: "100%",
-      marginBottom: 0,
-      marginTop: "15px",
     },
     valueLabel: {
       background: "#eaeaea",
       "& span": {
         color: "#000",
-        fontSize: ".4rem",
       },
     },
     markLabel: {
       color: "#eaeaea",
-      fontSize: ".4rem",
+      fontSize: ".6rem",
     },
   })(Slider);
-
-  const sliderTheme = createTheme({
-    overrides: {
-      root: {
-        width: "100%",
-      },
-      valueLabel: {
-        background: "#eaeaea",
-        "& span": {
-          color: "#000",
-        },
-      },
-      markLabel: {
-        color: "#eaeaea",
-        fontSize: ".6rem",
-      },
-    },
-  });
 
   const animationRef = useRef();
   const previousTimeRef = useRef();
@@ -90,8 +65,7 @@ const TimelineSlider = ({
         }
         animationRef.current = requestAnimationFrame(animate);
       };
-      // animate();
-      animationRef.current = requestAnimationFrame(animate);
+      animate();
     }
     return () =>
       animationRef.current && cancelAnimationFrame(animationRef.current);
@@ -102,14 +76,35 @@ const TimelineSlider = ({
       setIsPlaying(false);
       cancelAnimationFrame(animationRef.current);
     }
-  }, [dateCount, totalDays, onChange, isPlaying]);
+  }, [dateCount, totalDays, animationRef.current]);
 
   return (
     <TimelineContainer>
+      {!isPlaying ? (
+        <PlayArrow
+          color="info"
+          sx={{
+            fontSize: "2rem",
+            "&:hover": {
+              cursor: "pointer",
+            },
+          }}
+          onClick={() => setIsPlaying(!isPlaying)}
+        />
+      ) : (
+        <PauseIcon
+          color="info"
+          sx={{
+            fontSize: "2rem",
+            "&:hover": {
+              cursor: "pointer",
+            },
+          }}
+          onClick={() => setIsPlaying(!isPlaying)}
+        />
+      )}
       <SliderContainer>
         <SliderInput
-          size={"small"}
-          theme={sliderTheme}
           sx={{
             color: "info.main",
           }}
@@ -118,7 +113,7 @@ const TimelineSlider = ({
           valueLabelDisplay="on"
           valueLabelFormat={viewDate}
           value={dateCount}
-          // ref={sliderRef}
+          ref={sliderRef}
           marks={[
             {
               value: 0,
@@ -139,37 +134,58 @@ const TimelineSlider = ({
             },
           ]}
           onChange={(event, newValue) => {
+            // console.log('newValue', newValue)
             onChange(newValue);
           }}
         ></SliderInput>
       </SliderContainer>
-      <Button onClick={() => setIsPlaying(!isPlaying)}>
-        {!isPlaying ? (
-          <PlayArrow
-            color="info"
-            sx={{
-              fontSize: "2rem",
-              "&:hover": {
-                cursor: "pointer",
-              },
-            }}
-          />
-        ) : (
-          <PauseIcon
-            color="info"
-            sx={{
-              fontSize: "2rem",
-              "&:hover": {
-                cursor: "pointer",
-              },
-            }}
-          />
-        )}
-      </Button>
     </TimelineContainer>
   );
 };
 
-export default TimelineSlider;
+//
+//
+//
+//
 
-// console.log('newValue', newValue)
+const CountDates = () => {
+  const [state, setState] = useState({
+    dateCount: 0,
+    totalDays: dayjs()
+      .subtract(1, "day")
+      .diff(dayjs("01-22-2020", "MM-DD-YYYY"), "days"),
+    startDate: "01-22-2020",
+    endDate: dayjs().subtract(1, "day").format("MM-DD-YYYY"),
+    viewDate: "01-22-2020",
+  });
+
+  const setDateCount = (newCount) => {
+    setState((state) => ({
+      ...state,
+      dateCount: newCount || state.dateCount++,
+    }));
+  };
+
+  useEffect(() => {
+    setState((state) => ({
+      ...state,
+      viewDate: dayjs(state.startDate, "MM-DD-YYYY")
+        .add(state.dateCount, "days")
+        .format("MM-DD-YYYY"),
+    }));
+  }, [state.dateCount]);
+
+  return (
+    <>
+      <TimelineSlider
+        dateCount={state.dateCount}
+        totalDays={state.totalDays}
+        onChange={setDateCount}
+        viewDate={state.viewDate}
+      />
+      <pre>{JSON.stringify(state, null, 2)}</pre>
+    </>
+  );
+};
+
+export default CountDates;

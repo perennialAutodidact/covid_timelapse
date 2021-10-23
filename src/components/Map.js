@@ -1,10 +1,12 @@
-import React, { useState, useMemo, useCallback, useEffect } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
+import { connect } from "react-redux";
+// import dayjs from "dayjs";
 import DeckGL from "@deck.gl/react";
 import { ColumnLayer } from "@deck.gl/layers";
-import ReactMapGL from "react-map-gl";
+// import ReactMapGL from "react-map-gl";
 import { DataFilterExtension } from "@deck.gl/extensions";
-import TimelineSlider from "./TimelineSlider";
-import { useSelector, useDispatch } from "react-redux";
+// import TimelineSlider from "./TimelineSlider";
+import { useDispatch, useSelector } from "react-redux";
 
 import {
   COORDINATE_SYSTEM,
@@ -18,7 +20,7 @@ import { GeoJsonLayer } from "@deck.gl/layers";
 import { SimpleMeshLayer } from "@deck.gl/mesh-layers";
 
 import { SphereGeometry } from "@luma.gl/core";
-import { setLoadingStatus } from "../app/slices/covidSlice";
+import { setViewDate } from "../app/slices/covidSlice";
 const EARTH_RADIUS_METERS = 6.3e6;
 
 const ambientLight = new AmbientLight({
@@ -37,9 +39,7 @@ const lightingEffect = new LightingEffect({ ambientLight, sunLight });
 
 const Map = ({ initialCoords }) => {
   const dispatch = useDispatch();
-  const { loadingStatus, viewDate, data } = useSelector(
-    (state) => state.covidData
-  );
+  const { data, viewDate } = useSelector(state=>state.covidData)
 
   // Viewport settings
   const INITIAL_VIEW_STATE = {
@@ -96,7 +96,7 @@ const Map = ({ initialCoords }) => {
           html += "<br/>";
         }
       });
-      
+
       return {
         html,
         style: {
@@ -108,10 +108,13 @@ const Map = ({ initialCoords }) => {
     }
   };
 
+  // console.log("mapData:", data);
+  console.log("viewDate:", viewDate);
+  console.log(`${viewDate} data:`, data);
 
   const columnLayer = new ColumnLayer({
     id: "confirmed-cases",
-    data: data[viewDate],
+    data: data,
     diskResolution: 12,
     pickable: true,
     extruded: true,
@@ -119,13 +122,13 @@ const Map = ({ initialCoords }) => {
     getFillColor: (d) => [255, 255 - d.confirmed / 255, 0],
     filled: true,
     radius: 40000,
-    getFilterValue: (d) => d.confirmed > 0,
+    getFilterValue: (d) => d.confirmed !== null && d.confirmed > 0,
     filterRange: [0, 1],
-    extensions: [new DataFilterExtension({filterSize: 1})],
+    extensions: [new DataFilterExtension({ filterSize: 1 })],
     getPosition: (d) => {
-      if (d.coordinates === undefined) {
-        console.log("no coordinates:", d);
-      }
+      // if (d.coordinates === undefined) {
+      //   console.log("no coordinates:", d);
+      // }
       return [d.coordinates.longitude, d.coordinates.latitude];
     },
     getElevation: (d) => d.confirmed,
@@ -134,29 +137,28 @@ const Map = ({ initialCoords }) => {
         duration: 5000,
         // easing: d3.easeCubicInOut,
         enter: (to, from) => {
-          console.log("from", from);
+          // console.log("to", to);
+          // console.log("from", from);
           return from;
         },
       },
     },
   });
 
-  const MAPBOX_ACCESS_TOKEN = process.env.MAPBOX_ACCESS_TOKEN;
-
   return (
     <>
-      <DeckGL
-        initialViewState={INITIAL_VIEW_STATE}
-        controller={true}
-        layers={[backgroundLayers, columnLayer]}
-        views={new GlobeView()}
-        parameters={{
-          clearColor: [0, 0, 0, 1],
-        }}
-        getTooltip={getTooltip}
-      >
-        <TimelineSlider />
-      </DeckGL>
+      {columnLayer && (
+        <DeckGL
+          initialViewState={INITIAL_VIEW_STATE}
+          controller={true}
+          layers={[backgroundLayers, columnLayer]}
+          views={new GlobeView()}
+          parameters={{
+            clearColor: [0, 0, 0, 1],
+          }}
+          getTooltip={getTooltip}
+        ></DeckGL>
+      )}
     </>
     // {/* <ReactMapGL
     //   {...viewport}

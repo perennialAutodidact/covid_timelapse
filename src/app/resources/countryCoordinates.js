@@ -1,4 +1,4 @@
-export default {
+const countryCoordinates= {
   Albania: {
     latitude: 41,
     longitude: 20,
@@ -423,6 +423,10 @@ export default {
     latitude: 42.8333,
     longitude: 12.8333,
   },
+  "Ivory Coast": {
+    latitude: 8,
+    longitude: -5,
+  },
   Jamaica: {
     latitude: 18.25,
     longitude: -77.5,
@@ -460,8 +464,8 @@ export default {
     longitude: 127.5,
   },
   Kosovo: {
-    latitude:42.602636,
-    longitude: 20.902977
+    latitude: 42.602636,
+    longitude: 20.902977,
   },
   Kuwait: {
     latitude: 29.3375,
@@ -646,6 +650,14 @@ export default {
   "Norfolk Island": {
     latitude: -29.0333,
     longitude: 167.95,
+  },
+  "North Ireland": {
+    latitude: 54.607868,
+    longitude: -5.926437,
+  },
+  "North Macedonia": {
+    latitude: 41.608635,
+    longitude: 21.745275,
   },
   "Northern Mariana Islands": {
     latitude: 15.2,
@@ -939,7 +951,7 @@ export default {
     latitude: 8,
     longitude: -66,
   },
-  "Viet Nam": {
+  Vietnam: {
     latitude: 16,
     longitude: 106,
   },
@@ -976,3 +988,4 @@ export default {
     longitude: 65,
   },
 };
+ export default countryCoordinates

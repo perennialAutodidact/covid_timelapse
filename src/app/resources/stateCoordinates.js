@@ -1,4 +1,4 @@
-export default {
+const stateCoordinates = {
   Alaska: {
     latitude: 61.385,
     longitude: -152.2683,
@@ -208,3 +208,5 @@ export default {
     longitude: -66.628,
   },
 };
+
+export default stateCoordinates
