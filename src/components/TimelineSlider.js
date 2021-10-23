@@ -85,7 +85,7 @@ const TimelineSlider = ({
           !previousTimeRef.current ||
           currentTime - previousTimeRef.current >= 500
         ) {
-          onChange();
+          onChange(++dateCount);
           previousTimeRef.current = currentTime;
         }
         animationRef.current = requestAnimationFrame(animate);
@@ -106,6 +106,13 @@ const TimelineSlider = ({
 
   return (
     <TimelineContainer>
+      <Button sx={{ backgroundColor: "primary.main", color: "secondary.main" }} onClick={()=>onChange(++dateCount)}>
+        {">"}
+      </Button>
+      <Button sx={{ backgroundColor: "primary.main", color: "secondary.main" }} onClick={()=>onChange(--dateCount)}>
+        {"<"}
+      </Button>
+
       <SliderContainer>
         <SliderInput
           size={"small"}

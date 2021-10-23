@@ -47,11 +47,11 @@ function App() {
     dateCount: 0,
     totalDays: dayjs()
       .subtract(1, "day")
-      .diff(dayjs("01-22-2021", "MM-DD-YYYY"), "days"),
-    startDate: "01-22-2021",
+      .diff(dayjs("01-22-2020", "MM-DD-YYYY"), "days"),
+    startDate: "01-22-2020",
     endDate: dayjs().subtract(1, "day").format("MM-DD-YYYY"),
-    lastLoadedDate: "02-10-2021", // for lazy loading
-    viewDate: "01-22-2021",
+    lastLoadedDate: "02-10-2020", // for lazy loading
+    viewDate: "01-22-2020",
   });
 
   const getEndDate = (_startDate) => {
@@ -191,7 +191,7 @@ function App() {
 
   // console.log(state.viewDate);
   // let isVisible = chunk.date === state.viewDate;
-  const columnLayers = dataChunks.map((chunk) => {
+  const columnLayers = useMemo(()=>dataChunks.map((chunk) => {
     return new ColumnLayer({
       id: "confirmed-cases",
       data: chunk.data,
@@ -221,19 +221,16 @@ function App() {
         }
       },
       getElevation: (d) => d.confirmed,
-      transitions: {
-        getElevation: {
-          duration: 2000,
-          // easing: d3.easeCubicInOut,
-          enter: (to, from) => {
-            // console.log("to", to);
-            // console.log("from", from);
-            return from;
-          },
-        },
-      },
+      // transitions: {
+      //   getElevation: {
+      //     // enter: (to, from) => to,
+      //     duration: 2000,
+      //     // easing: d3.easeCubicInOut,
+      //   },
+      // },
     });
-  });
+    console.log(columnLayers)
+  }), [state.viewDate]);
 
   const getTooltip = ({ object }) => {
     if (object) {
