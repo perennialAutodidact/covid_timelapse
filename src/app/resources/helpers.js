@@ -19,7 +19,7 @@ export const scrubData = (_date, _rawData) => {
     "summer olympics 2020",
     "recovered",
     "unknown",
-    "others",
+    "others"
   ];
 
   const numberOfFields = Object.keys(_rawData[0]).length;
@@ -27,7 +27,7 @@ export const scrubData = (_date, _rawData) => {
     countryRegion: null,
     provinceState: null,
     latitude: null,
-    longitude: null,
+    longitude: null
   };
   // ACCOMODATE FOR DIFFERENT FIELD NAMES IN FIRST FEW CSV FILES
   if (numberOfFields <= 8) {
@@ -56,16 +56,24 @@ export const scrubData = (_date, _rawData) => {
       let countryRegion = "";
 
       // DETERMINE THE COUNTRY/REGION NAME
-      if (datum[countryRegionFieldName] === "US") {
-        countryRegion = "United States";
-      } else if (datum[countryRegionFieldName] === "UK") {
-        countryRegion = "United Kingdom";
-      } else if (datum[countryRegionFieldName] === "Taiwan*") {
-        countryRegion = "Taiwan";
-      } else if (datum[countryRegionFieldName] === "Mainland China") {
-        countryRegion = "China";
-      } else {
-        countryRegion = datum[countryRegionFieldName].trim();
+      switch (datum[countryRegionFieldName]) {
+        case "US":
+          countryRegion = "United States";
+          break;
+        case "UK":
+          countryRegion = "United Kingdom";
+          break;
+        case "Taiwan*":
+          countryRegion = "Taiwan";
+          break;
+        case "Mainland China":
+          countryRegion = "China";
+          break;
+        case "Iran (Islamic Republic of)":
+          countryRegion = "Iran";
+          break;
+        default:
+          countryRegion = datum[countryRegionFieldName].trim();
       }
 
       // PROVINCE/STATE NAME
@@ -98,9 +106,9 @@ export const scrubData = (_date, _rawData) => {
         coordinates = { latitude: datum.Lat, longitude: datum.Long_ };
       }
 
-      if (coordinates === undefined) {
-        console.log(datum);
-      }
+      // if (coordinates === undefined) {
+      //   console.log(datum);
+      // }
 
       let county = datum.Admin2;
 
@@ -113,7 +121,7 @@ export const scrubData = (_date, _rawData) => {
         confirmed: datum.Confirmed,
         deaths: datum.Deaths,
         active: datum.Active,
-        recovered: datum.Recovered,
+        recovered: datum.Recovered
       });
     }
   });

@@ -48,12 +48,12 @@ const TimelineSlider = ({
       background: "#eaeaea",
       "& span": {
         color: "#000",
-        fontSize: ".4rem",
+        fontSize: ".8rem",
       },
     },
     markLabel: {
       color: "#eaeaea",
-      fontSize: ".4rem",
+      fontSize: ".8rem",
     },
   })(Slider);
 
@@ -150,7 +150,9 @@ const TimelineSlider = ({
           }}
         ></SliderInput>
       </SliderContainer>
-      <Button onClick={() => setIsPlaying(!isPlaying)}>
+      <Button onClick={() => {
+        cancelAnimationFrame(animationRef.current);
+        setIsPlaying(!isPlaying)}}>
         {!isPlaying ? (
           <PlayArrow
             color="info"

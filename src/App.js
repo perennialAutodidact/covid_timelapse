@@ -12,7 +12,7 @@ import { ColumnLayer } from "@deck.gl/layers";
 // import ReactMapGL from "react-map-gl";
 import { DataFilterExtension } from "@deck.gl/extensions";
 // import TimelineSlider from "./TimelineSlider";
-
+// import debug from "@luma.gl";
 import {
   COORDINATE_SYSTEM,
   _GlobeView as GlobeView,
@@ -34,7 +34,7 @@ function App() {
   const dispatch = useDispatch();
 
   const MAPBOX_ACCESS_TOKEN = process.env.REACT_APP_MAPBOX_ACCESS_TOKEN;
-  const DATE_BLOCK_SIZE = 20; // number of days to load at a time
+  const DATE_BLOCK_SIZE = 100; // number of days to load at a time
 
   const { startDate, dataChunks } = useSelector((state) => state.covidData);
 
@@ -80,12 +80,13 @@ function App() {
         results.forEach((result) => {
           let _date = result.meta.arg;
           let _data = result.payload;
-          dataChunk = dataChunk.concat(scrubData(_date, _data));
+          dataChunk.push(scrubData(_date, _data));
         });
         return dataChunk;
       })
       .then((dataChunk) => {
         dispatch(addDataChunk({ data: dataChunk, dateRange }));
+        
       })
       .catch((err) => console.log(err));
   };
@@ -103,14 +104,13 @@ function App() {
       "days"
     );
 
-    if (Math.abs(diff) < 10) {
+    if (Math.abs(diff) < 90) {
       loadCSVs(state.viewDate);
       let newEndDate = getEndDate(state.lastLoadedDate)
         .subtract(1, "day")
         .format("MM-DD-YYYY");
 
       console.log("newEndDate", newEndDate);
-
       setState((state) => ({
         ...state,
         lastLoadedDate: newEndDate,
@@ -190,47 +190,59 @@ function App() {
   // ];
 
   // console.log(state.viewDate);
-  // let isVisible = chunk.date === state.viewDate;
-  const columnLayers = useMemo(()=>dataChunks.map((chunk) => {
-    return new ColumnLayer({
-      id: "confirmed-cases",
-      data: chunk.data,
-      diskResolution: 12,
-      pickable: true,
-      extruded: true,
-      elevationScale: 1,
-      // visible: false,
-      getFillColor: (d) => [255, 255 - d.confirmed / 255, 0],
-      filled: true,
-      radius: 60000,
-      getFilterValue: (d) => [
-        // .5 is in the filterRange [0, 1] and will therefore get rendered. 10 will not.
-        d.date === state.viewDate ? 0.5 : 10,
-        d.confirmed !== null && d.confirmed > 0 ? .5 : 10,
-      ],
-      filterRange: [[0, 1], [0, 1]],
-      extensions: [new DataFilterExtension({ filterSize: 2 })],
-      updateTriggers: {
-        getElevation: state.viewDate,
-      },
-      getPosition: (d) => {
-        if (d.coordinates === undefined) {
-          console.log("no coordinates:", d);
-        } else {
-          return [d.coordinates.longitude, d.coordinates.latitude];
-        }
-      },
-      getElevation: (d) => d.confirmed,
-      // transitions: {
-      //   getElevation: {
-      //     // enter: (to, from) => to,
-      //     duration: 2000,
-      //     // easing: d3.easeCubicInOut,
-      //   },
-      // },
-    });
-    console.log(columnLayers)
-  }), [state.viewDate]);
+  const columnLayers = useMemo(
+    () =>
+    dataChunks.map((chunk, i) => {
+      // let filteredData = chunk.data.filter(datum=>state.viewDate === datum.date ? .5 : 10)
+      let filteredData = chunk.data.filter(datum=>datum[0].date === state.viewDate)
+      console.log('filteredData', filteredData)
+      let isVisible = chunk.dateRange.includes(state.viewDate)
+      // console.log(chunk.dateRange, isVisible)
+        return new ColumnLayer({
+          id: `confirmed-cases-${i}`,
+          data: filteredData[0], //chunk.data,
+          diskResolution: 12,
+          pickable: true,
+          extruded: true,
+          elevationScale: 1,
+          visible: isVisible,
+          getFillColor: (d) => [255, 255 - d.confirmed / 255, 0],
+          filled: true,
+          radius: 60000,
+          getFilterValue: (d) => [
+            // d.isVisible,
+            // .5 is in the filterRange [0, 1] and will therefore get rendered. 10 will not.
+            // d.date === state.viewDate ? 0.5 : 10,
+            d.confirmed !== null && d.confirmed > 0 ? 0.5 : 10,
+          ],
+          filterRange: [
+            // [0, 1],
+            [0, 1],
+          ],
+          extensions: [new DataFilterExtension({ filterSize: 1 })],
+          // updateTriggers: {
+          //   getElevation: state.viewDate,
+          // },
+          getPosition: (d) => {
+            if (d.coordinates === undefined) {
+              // console.log("no coordinates:", d);
+            } else {
+              return [d.coordinates.longitude, d.coordinates.latitude];
+            }
+          },
+          getElevation: (d) => d.confirmed,
+          // transitions: {
+          //   getElevation: {
+          //     // enter: (to, from) => to,
+          //     duration: 2000,
+          //     // easing: d3.easeCubicInOut,
+          //   },
+          // },
+        });
+      }),
+    [state.viewDate]
+  );
+
 
   const getTooltip = ({ object }) => {
     if (object) {
@@ -265,10 +277,6 @@ function App() {
     }
   };
 
-  // console.log("mapData:", data);
-  // console.log("viewDate:", state.viewDate);
-  // console.log(`${state.viewDate} data:`, data);
-
   return (
     <>
       <div className="App">
@@ -281,6 +289,7 @@ function App() {
               viewDate={state.viewDate}
             />
             <DeckGL
+              // debug={true}
               initialViewState={INITIAL_VIEW_STATE}
               controller={true}
               layers={[backgroundLayers, columnLayers]}
@@ -289,6 +298,8 @@ function App() {
                 clearColor: [0, 0, 0, 1],
               }}
               getTooltip={getTooltip}
+              useDevicePixels={false}
+              preventStyleDiffing={true}
             ></DeckGL>
           </>
         )}

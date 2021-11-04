@@ -62,6 +62,7 @@ export const covidSlice = createSlice({
       };
     },
     addDataChunk: (state, action) => {
+      console.log('chunk length at add', action.payload)
       state.dataChunks = state.dataChunks.concat([action.payload]);
     },
     setViewDate: (state, action) => {
