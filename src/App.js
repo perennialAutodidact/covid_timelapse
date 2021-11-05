@@ -55,7 +55,12 @@ function App() {
   });
 
   const getEndDate = (_startDate) => {
-    let _endDate = dayjs(_startDate, "MM-DD-YYYY").add(DATE_BLOCK_SIZE, "days");
+    let _endDate;
+    if(dataChunks.length < 3){
+      _endDate = dayjs(_startDate, "MM-DD-YYYY").add(DATE_BLOCK_SIZE, "days");
+    } else {
+      _endDate = dayjs(_startDate, "MM-DD-YYYY").add(30, "days");
+    }
 
     const yesterday = dayjs().subtract(1, "day");
     if (_endDate.isAfter(yesterday)) {
@@ -97,14 +102,14 @@ function App() {
 
   //
   // If the viewDate is within a certain number of days from the lastLoadedDate,
-  // load the next set of <datagrid></datagrid>
+  // load the next set of data
   useEffect(() => {
     const diff = dayjs(state.viewDate, "MM-DD-YYYY").diff(
       dayjs(state.lastLoadedDate, "MM-DD-YYYY"),
       "days"
     );
 
-    if (Math.abs(diff) < 90) {
+    if (Math.abs(diff) < 190) {
       loadCSVs(state.viewDate);
       let newEndDate = getEndDate(state.lastLoadedDate)
         .subtract(1, "day")
@@ -195,7 +200,7 @@ function App() {
     dataChunks.map((chunk, i) => {
       // let filteredData = chunk.data.filter(datum=>state.viewDate === datum.date ? .5 : 10)
       let filteredData = chunk.data.filter(datum=>datum[0].date === state.viewDate)
-      console.log('filteredData', filteredData)
+      // console.log('filteredData', filteredData)
       let isVisible = chunk.dateRange.includes(state.viewDate)
       // console.log(chunk.dateRange, isVisible)
         return new ColumnLayer({
@@ -206,9 +211,10 @@ function App() {
           extruded: true,
           elevationScale: 1,
           visible: isVisible,
-          getFillColor: (d) => [255, 255 - d.confirmed / 255, 0],
+          getFillColor: (d) => [255, 255 - (d.confirmed / 2) / 255, 0],
           filled: true,
-          radius: 60000,
+          radius: 1000,
+          coverage: 100,
           getFilterValue: (d) => [
             // d.isVisible,
             // .5 is in the filterRange [0, 1] and will therefore get rendered. 10 will not.
