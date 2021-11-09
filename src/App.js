@@ -34,7 +34,7 @@ function App() {
   const dispatch = useDispatch();
 
   const MAPBOX_ACCESS_TOKEN = process.env.REACT_APP_MAPBOX_ACCESS_TOKEN;
-  const DATE_BLOCK_SIZE = 100; // number of days to load at a time
+  const DATE_BLOCK_SIZE = 200; // number of days to load at a time
 
   const { startDate, dataChunks } = useSelector((state) => state.covidData);
 
@@ -50,16 +50,19 @@ function App() {
       .diff(dayjs("01-22-2020", "MM-DD-YYYY"), "days"),
     startDate: "01-22-2020",
     endDate: dayjs().subtract(1, "day").format("MM-DD-YYYY"),
-    lastLoadedDate: "02-10-2020", // for lazy loading
+    lastLoadedDate: dayjs('01-22-2020', 'MM-DD-YYYY').add(DATE_BLOCK_SIZE, "days").format("MM-DD-YYYY"), // for lazy loading
     viewDate: "01-22-2020",
+    isPlaying: false
   });
+
+  const setIsPlaying = (isPlaying) => setState({ ...state, isPlaying });
 
   const getEndDate = (_startDate) => {
     let _endDate;
-    if(dataChunks.length < 3){
+    if (dataChunks.length < 2) {
       _endDate = dayjs(_startDate, "MM-DD-YYYY").add(DATE_BLOCK_SIZE, "days");
     } else {
-      _endDate = dayjs(_startDate, "MM-DD-YYYY").add(30, "days");
+      _endDate = dayjs(_startDate, "MM-DD-YYYY").add(100, "days");
     }
 
     const yesterday = dayjs().subtract(1, "day");
@@ -91,26 +94,31 @@ function App() {
       })
       .then((dataChunk) => {
         dispatch(addDataChunk({ data: dataChunk, dateRange }));
-        
       })
       .catch((err) => console.log(err));
   };
 
   useEffect(() => {
-    loadCSVs(state.startDate);
+    loadCSVs("01-22-2020");
   }, []);
 
   //
   // If the viewDate is within a certain number of days from the lastLoadedDate,
   // load the next set of data
   useEffect(() => {
-    const diff = dayjs(state.viewDate, "MM-DD-YYYY").diff(
-      dayjs(state.lastLoadedDate, "MM-DD-YYYY"),
+    const diff = dayjs(state.lastLoadedDate, "MM-DD-YYYY").diff(
+      dayjs(state.viewDate, 'MM-DD-YYYY'),
       "days"
     );
 
+    console.log('last', state.lastLoadedDate)
+    console.log('first', state.viewDate)
+    console.log("diff", diff);
+
+ 
     if (Math.abs(diff) < 190) {
-      loadCSVs(state.viewDate);
+
+      loadCSVs(state.lastLoadedDate);
       let newEndDate = getEndDate(state.lastLoadedDate)
         .subtract(1, "day")
         .format("MM-DD-YYYY");
@@ -118,15 +126,15 @@ function App() {
       console.log("newEndDate", newEndDate);
       setState((state) => ({
         ...state,
-        lastLoadedDate: newEndDate,
+        lastLoadedDate: newEndDate
       }));
     }
-  }, [state.viewDate, state.lastLoadedDate]);
+  }, [state.viewDate, state.lastLoadedDate, dataChunks]);
 
   const setDateCount = useCallback((newCount) => {
     setState((state) => ({
       ...state,
-      dateCount: newCount || state.dateCount++,
+      dateCount: newCount || state.dateCount++
     }));
   }, []);
 
@@ -135,7 +143,7 @@ function App() {
       ...state,
       viewDate: dayjs(state.startDate, "MM-DD-YYYY")
         .add(state.dateCount, "days")
-        .format("MM-DD-YYYY"),
+        .format("MM-DD-YYYY")
     });
   }, [state.dateCount, state.startDate]);
 
@@ -145,7 +153,7 @@ function App() {
     latitude: coords.latitude,
     zoom: -0.5,
     pitch: 0,
-    bearing: 0,
+    bearing: 0
   };
   const EARTH_RADIUS_METERS = 6.3e6;
 
@@ -157,11 +165,11 @@ function App() {
         mesh: new SphereGeometry({
           radius: EARTH_RADIUS_METERS,
           nlat: 18,
-          nlong: 36,
+          nlong: 36
         }),
         coordinateSystem: COORDINATE_SYSTEM.CARTESIAN,
         getPosition: [0, 0, 0],
-        getColor: [20, 20, 255],
+        getColor: [20, 20, 255]
       }),
       new GeoJsonLayer({
         id: "earth-land",
@@ -169,40 +177,19 @@ function App() {
         // Styles
         stroked: false,
         filled: true,
-        getFillColor: [20, 85, 20],
-      }),
+        getFillColor: [20, 85, 20]
+      })
     ],
     []
   );
 
-  // const fakeData = [
-  //   [
-  //     {
-  //       date: "01-22-2021",
-  //       countryRegion: "United States",
-  //       coordinates: { latitude: 37.937575, longitude: -76.72920628 },
-  //       confirmed: 1000000,
-  //       testValue: .5
-  //     },
-  //     {
-  //       date: "01-23-2021",
-  //       countryRegion: "United States",
-  //       coordinates: { latitude: 38.937575, longitude: -85.72920628 },
-  //       confirmed: 1000000,
-  //       testValue: 3
-  //     },
-  //   ],
-  // ];
-
-  // console.log(state.viewDate);
   const columnLayers = useMemo(
     () =>
-    dataChunks.map((chunk, i) => {
-      // let filteredData = chunk.data.filter(datum=>state.viewDate === datum.date ? .5 : 10)
-      let filteredData = chunk.data.filter(datum=>datum[0].date === state.viewDate)
-      // console.log('filteredData', filteredData)
-      let isVisible = chunk.dateRange.includes(state.viewDate)
-      // console.log(chunk.dateRange, isVisible)
+      dataChunks.map((chunk, i) => {
+        let filteredData = chunk.data.filter(
+          (datum) => datum[0].date === state.viewDate
+        );
+        let isVisible = chunk.dateRange.includes(state.viewDate);
         return new ColumnLayer({
           id: `confirmed-cases-${i}`,
           data: filteredData[0], //chunk.data,
@@ -211,7 +198,7 @@ function App() {
           extruded: true,
           elevationScale: 1,
           visible: isVisible,
-          getFillColor: (d) => [255, 255 - (d.confirmed / 2) / 255, 0],
+          getFillColor: (d) => [255, 255 - d.confirmed / 2 / 255, 0],
           filled: true,
           radius: 1000,
           coverage: 100,
@@ -219,11 +206,11 @@ function App() {
             // d.isVisible,
             // .5 is in the filterRange [0, 1] and will therefore get rendered. 10 will not.
             // d.date === state.viewDate ? 0.5 : 10,
-            d.confirmed !== null && d.confirmed > 0 ? 0.5 : 10,
+            d.confirmed !== null && d.confirmed > 0 ? 0.5 : 10
           ],
           filterRange: [
             // [0, 1],
-            [0, 1],
+            [0, 1]
           ],
           extensions: [new DataFilterExtension({ filterSize: 1 })],
           // updateTriggers: {
@@ -236,7 +223,7 @@ function App() {
               return [d.coordinates.longitude, d.coordinates.latitude];
             }
           },
-          getElevation: (d) => d.confirmed,
+          getElevation: (d) => d.confirmed
           // transitions: {
           //   getElevation: {
           //     // enter: (to, from) => to,
@@ -249,7 +236,6 @@ function App() {
     [state.viewDate]
   );
 
-
   const getTooltip = ({ object }) => {
     if (object) {
       let html = "";
@@ -259,7 +245,7 @@ function App() {
         { title: "Province/State", fieldName: "provinceState" },
         { title: "County", fieldName: "county" },
         { title: "Confirmed", fieldName: "confirmed" },
-        { title: "Deaths", fieldName: "deaths" },
+        { title: "Deaths", fieldName: "deaths" }
       ];
 
       fields.forEach((field) => {
@@ -277,8 +263,8 @@ function App() {
         style: {
           textAlign: "left",
           borderRadius: "5px",
-          padding: "15px",
-        },
+          padding: "15px"
+        }
       };
     }
   };
@@ -293,6 +279,8 @@ function App() {
               totalDays={state.totalDays}
               onChange={setDateCount}
               viewDate={state.viewDate}
+              setIsPlaying={setIsPlaying}
+              isPlaying={state.isPlaying}
             />
             <DeckGL
               // debug={true}
@@ -301,7 +289,7 @@ function App() {
               layers={[backgroundLayers, columnLayers]}
               views={new GlobeView()}
               parameters={{
-                clearColor: [0, 0, 0, 1],
+                clearColor: [0, 0, 0, 1]
               }}
               getTooltip={getTooltip}
               useDevicePixels={false}
@@ -317,7 +305,7 @@ function App() {
 const mapStateToProps = (state) => {
   return {
     // viewDate: state.covidData.viewDate,
-    data: state.covidData.data,
+    data: state.covidData.data
     // startDate: state.covidData.startDate,
   };
 };

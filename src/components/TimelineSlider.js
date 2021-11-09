@@ -15,8 +15,10 @@ const TimelineSlider = ({
   viewDate,
   dateCount,
   totalDays,
+  isPlaying,
+  setIsPlaying
 }) => {
-  const [isPlaying, setIsPlaying] = useState(false);
+  // const [isPlaying, setIsPlaying] = useState(false);
   const sliderRef = useRef();
 
   const TimelineContainer = styled("div")({
@@ -83,7 +85,7 @@ const TimelineSlider = ({
       let animate = (currentTime) => {
         if (
           !previousTimeRef.current ||
-          currentTime - previousTimeRef.current >= 500
+          currentTime - previousTimeRef.current >= 250
         ) {
           onChange(++dateCount);
           previousTimeRef.current = currentTime;
@@ -98,7 +100,7 @@ const TimelineSlider = ({
   }, [isPlaying]);
 
   useEffect(() => {
-    if (isPlaying && dateCount === totalDays) {
+    if (isPlaying && dateCount >= totalDays) {
       setIsPlaying(false);
       cancelAnimationFrame(animationRef.current);
     }
@@ -125,7 +127,6 @@ const TimelineSlider = ({
           valueLabelDisplay="on"
           valueLabelFormat={viewDate}
           value={dateCount}
-          // ref={sliderRef}
           marks={[
             {
               value: 0,
