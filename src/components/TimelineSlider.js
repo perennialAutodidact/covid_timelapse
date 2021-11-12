@@ -16,9 +16,9 @@ const TimelineSlider = ({
   dateCount,
   totalDays,
   isPlaying,
-  setIsPlaying
+  toggleIsPlaying
 }) => {
-  // const [isPlaying, setIsPlaying] = useState(false);
+  // const [isPlaying, toggleIsPlaying] = useState(false);
   const sliderRef = useRef();
 
   const TimelineContainer = styled("div")({
@@ -30,52 +30,64 @@ const TimelineSlider = ({
     display: "flex",
     flexDirection: "column",
     justifyContent: "center",
-    alignItems: "center",
+    alignItems: "center"
   });
 
   const SliderContainer = styled("div")({
     display: "flex",
     alignItems: "center",
     width: "60%",
-    justifyContent: "center",
+    justifyContent: "center"
   });
 
   const SliderInput = withStyles({
     root: {
       width: "100%",
       marginBottom: 0,
-      marginTop: "15px",
+      marginTop: "15px"
     },
     valueLabel: {
       background: "#eaeaea",
       "& span": {
         color: "#000",
-        fontSize: ".8rem",
-      },
+        fontSize: ".8rem"
+      }
     },
     markLabel: {
       color: "#eaeaea",
-      fontSize: ".8rem",
-    },
+      fontSize: ".8rem"
+    }
   })(Slider);
 
   const sliderTheme = createTheme({
     overrides: {
       root: {
-        width: "100%",
+        width: "100%"
       },
       valueLabel: {
         background: "#eaeaea",
         "& span": {
-          color: "#000",
-        },
+          color: "#000"
+        }
       },
       markLabel: {
         color: "#eaeaea",
-        fontSize: ".6rem",
-      },
-    },
+        fontSize: ".6rem"
+      }
+    }
   });
+
+  // const animationRef = useRef();
+  // useEffect(() => {
+  //   if (isPlaying) {
+  //     animationRef.current = setInterval(() => {
+  //       onChange(++dateCount);
+  //     }, 300);
+  //   } else {
+  //     clearInterval(animationRef.current);
+  //   }
+  //   return () => clearInterval(animationRef.current);
+  // }, [isPlaying]);
 
   const animationRef = useRef();
   const previousTimeRef = useRef();
@@ -101,26 +113,33 @@ const TimelineSlider = ({
 
   useEffect(() => {
     if (isPlaying && dateCount >= totalDays) {
-      setIsPlaying(false);
-      cancelAnimationFrame(animationRef.current);
+      toggleIsPlaying();
+      // cancelAnimationFrame(animationRef.current);
     }
   }, [dateCount, totalDays, onChange, isPlaying]);
 
+
   return (
     <TimelineContainer>
-      <Button sx={{ backgroundColor: "primary.main", color: "secondary.main" }} onClick={()=>onChange(++dateCount)}>
+      {/* <Button
+        sx={{ backgroundColor: "primary.main", color: "secondary.main" }}
+        onClick={() => onChange(++dateCount)}
+      >
         {">"}
       </Button>
-      <Button sx={{ backgroundColor: "primary.main", color: "secondary.main" }} onClick={()=>onChange(--dateCount)}>
+      <Button
+        sx={{ backgroundColor: "primary.main", color: "secondary.main" }}
+        onClick={() => onChange(--dateCount)}
+      >
         {"<"}
-      </Button>
+      </Button> */}
 
       <SliderContainer>
         <SliderInput
           size={"small"}
           theme={sliderTheme}
           sx={{
-            color: "info.main",
+            color: "info.main"
           }}
           min={0}
           max={totalDays}
@@ -130,38 +149,43 @@ const TimelineSlider = ({
           marks={[
             {
               value: 0,
-              label: "January 22, 2020",
+              label: "January 22, 2020"
             },
             {
-              value: totalDays * 0.25,
+              value: totalDays * 0.25
             },
             {
-              value: totalDays * 0.5,
+              value: totalDays * 0.5
             },
             {
-              value: totalDays * 0.75,
+              value: totalDays * 0.75
             },
             {
               value: totalDays,
-              label: dayjs().subtract(1, "day").format("MMMM DD, YYYY"),
-            },
+              label: dayjs().subtract(1, "day").format("MMMM DD, YYYY")
+            }
           ]}
           onChange={(event, newValue) => {
             onChange(newValue);
           }}
         ></SliderInput>
       </SliderContainer>
-      <Button onClick={() => {
-        cancelAnimationFrame(animationRef.current);
-        setIsPlaying(!isPlaying)}}>
+      <Button
+        onClick={() => {
+          setTimeout(() => {
+            cancelAnimationFrame(animationRef.current);
+            toggleIsPlaying();
+          }, 10);
+        }}
+      >
         {!isPlaying ? (
           <PlayArrow
             color="info"
             sx={{
               fontSize: "2rem",
               "&:hover": {
-                cursor: "pointer",
-              },
+                cursor: "pointer"
+              }
             }}
           />
         ) : (
@@ -170,8 +194,8 @@ const TimelineSlider = ({
             sx={{
               fontSize: "2rem",
               "&:hover": {
-                cursor: "pointer",
-              },
+                cursor: "pointer"
+              }
             }}
           />
         )}

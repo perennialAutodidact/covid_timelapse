@@ -18,7 +18,7 @@ import {
   _GlobeView as GlobeView,
   LightingEffect,
   AmbientLight,
-  _SunLight as SunLight,
+  _SunLight as SunLight
 } from "@deck.gl/core";
 
 import { GeoJsonLayer } from "@deck.gl/layers";
@@ -40,7 +40,7 @@ function App() {
 
   const [coords, setCoords] = useState({
     longitude: -96.4247,
-    latitude: 10.51073,
+    latitude: 10.51073
   });
 
   const [state, setState] = useState({
@@ -50,12 +50,21 @@ function App() {
       .diff(dayjs("01-22-2020", "MM-DD-YYYY"), "days"),
     startDate: "01-22-2020",
     endDate: dayjs().subtract(1, "day").format("MM-DD-YYYY"),
-    lastLoadedDate: dayjs('01-22-2020', 'MM-DD-YYYY').add(DATE_BLOCK_SIZE, "days").format("MM-DD-YYYY"), // for lazy loading
+    lastLoadedDate: dayjs("01-22-2020", "MM-DD-YYYY")
+      .add(DATE_BLOCK_SIZE, "days")
+      .format("MM-DD-YYYY"), // for lazy loading
     viewDate: "01-22-2020",
     isPlaying: false
   });
 
-  const setIsPlaying = (isPlaying) => setState({ ...state, isPlaying });
+  const toggleIsPlaying = () => {
+    setTimeout(() => {
+      setState((state) => {
+        console.log(state.isPlaying)
+        return { ...state, isPlaying: !state.isPlaying }
+      });
+    }, 10);
+  };
 
   const getEndDate = (_startDate) => {
     let _endDate;
@@ -107,17 +116,15 @@ function App() {
   // load the next set of data
   useEffect(() => {
     const diff = dayjs(state.lastLoadedDate, "MM-DD-YYYY").diff(
-      dayjs(state.viewDate, 'MM-DD-YYYY'),
+      dayjs(state.viewDate, "MM-DD-YYYY"),
       "days"
     );
 
-    console.log('last', state.lastLoadedDate)
-    console.log('first', state.viewDate)
-    console.log("diff", diff);
+    // console.log("last", state.lastLoadedDate);
+    // console.log("first", state.viewDate);
+    // console.log("diff", diff);
 
- 
     if (Math.abs(diff) < 190) {
-
       loadCSVs(state.lastLoadedDate);
       let newEndDate = getEndDate(state.lastLoadedDate)
         .subtract(1, "day")
@@ -279,7 +286,7 @@ function App() {
               totalDays={state.totalDays}
               onChange={setDateCount}
               viewDate={state.viewDate}
-              setIsPlaying={setIsPlaying}
+              toggleIsPlaying={toggleIsPlaying}
               isPlaying={state.isPlaying}
             />
             <DeckGL
