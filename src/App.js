@@ -60,8 +60,7 @@ function App() {
   const toggleIsPlaying = () => {
     setTimeout(() => {
       setState((state) => {
-        console.log(state.isPlaying)
-        return { ...state, isPlaying: !state.isPlaying }
+        return { ...state, isPlaying: !state.isPlaying };
       });
     }, 10);
   };
@@ -74,6 +73,8 @@ function App() {
       _endDate = dayjs(_startDate, "MM-DD-YYYY").add(100, "days");
     }
 
+    // if the calculated _endDate is past yesterday,
+    // yesterday becomes the _endDate
     const yesterday = dayjs().subtract(1, "day");
     if (_endDate.isAfter(yesterday)) {
       _endDate = yesterday;
@@ -120,21 +121,28 @@ function App() {
       "days"
     );
 
-    // console.log("last", state.lastLoadedDate);
-    // console.log("first", state.viewDate);
-    // console.log("diff", diff);
+    let newEndDate, startDate;
 
-    if (Math.abs(diff) < 190) {
+    if (diff < 0) {
+      startDate = state.viewDate;
+    } else {
+      startDate = state.lastLoadedDate;
+    }
+    newEndDate = getEndDate(startDate).subtract(1, "day").format("MM-DD-YYYY");
+
+    // distance from current viewDate to yesterday's date
+    let distToYesterday = dayjs()
+      .subtract(1, "day")
+      .diff(dayjs(newEndDate, "MM-DD-YYYY"), "days");
+
+    if (Math.abs(diff) < 190 && distToYesterday > 1) {
       loadCSVs(state.lastLoadedDate);
-      let newEndDate = getEndDate(state.lastLoadedDate)
-        .subtract(1, "day")
-        .format("MM-DD-YYYY");
-
-      console.log("newEndDate", newEndDate);
-      setState((state) => ({
-        ...state,
-        lastLoadedDate: newEndDate
-      }));
+      if (diff > 0) {
+        setState((state) => ({
+          ...state,
+          lastLoadedDate: newEndDate
+        }));
+      }
     }
   }, [state.viewDate, state.lastLoadedDate, dataChunks]);
 

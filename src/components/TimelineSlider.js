@@ -97,7 +97,7 @@ const TimelineSlider = ({
       let animate = (currentTime) => {
         if (
           !previousTimeRef.current ||
-          currentTime - previousTimeRef.current >= 250
+          currentTime - previousTimeRef.current >= 100
         ) {
           onChange(++dateCount);
           previousTimeRef.current = currentTime;
@@ -112,28 +112,15 @@ const TimelineSlider = ({
   }, [isPlaying]);
 
   useEffect(() => {
-    if (isPlaying && dateCount >= totalDays) {
+    if (isPlaying && dateCount >= totalDays - 1) {
       toggleIsPlaying();
-      // cancelAnimationFrame(animationRef.current);
+      cancelAnimationFrame(animationRef.current);
     }
-  }, [dateCount, totalDays, onChange, isPlaying]);
+  }, [dateCount, totalDays, isPlaying]);
 
 
   return (
     <TimelineContainer>
-      {/* <Button
-        sx={{ backgroundColor: "primary.main", color: "secondary.main" }}
-        onClick={() => onChange(++dateCount)}
-      >
-        {">"}
-      </Button>
-      <Button
-        sx={{ backgroundColor: "primary.main", color: "secondary.main" }}
-        onClick={() => onChange(--dateCount)}
-      >
-        {"<"}
-      </Button> */}
-
       <SliderContainer>
         <SliderInput
           size={"small"}
@@ -173,7 +160,9 @@ const TimelineSlider = ({
       <Button
         onClick={() => {
           setTimeout(() => {
-            cancelAnimationFrame(animationRef.current);
+            if(isPlaying){
+              cancelAnimationFrame(animationRef.current);
+            }
             toggleIsPlaying();
           }, 10);
         }}
