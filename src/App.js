@@ -3,6 +3,8 @@ import "./App.css";
 import { useEffect, useState, useMemo, useCallback } from "react";
 import dayjs from "dayjs";
 import Map from "./components/Map";
+// import worker from "./app/resources/worker";
+// import WebWorker from "./app/resources/workerSetup";
 import { getCSVData, addDataChunk } from "./app/slices/covidSlice";
 import { useSelector, useDispatch } from "react-redux";
 
@@ -57,14 +59,6 @@ function App() {
     isPlaying: false
   });
 
-  const toggleIsPlaying = () => {
-    setTimeout(() => {
-      setState((state) => {
-        return { ...state, isPlaying: !state.isPlaying };
-      });
-    }, 10);
-  };
-
   const getEndDate = (_startDate) => {
     let _endDate;
     if (dataChunks.length < 2) {
@@ -110,6 +104,10 @@ function App() {
 
   useEffect(() => {
     loadCSVs("01-22-2020");
+    // if (Worker) {
+    //   let webWorker = new WebWorker(worker);
+    //   webWorker.postMessage("Hello world");
+    // }
   }, []);
 
   //
@@ -153,14 +151,20 @@ function App() {
     }));
   }, []);
 
-  useEffect(() => {
-    setState({
+  const setViewDate = useCallback((newViewDate) => {
+    setState((state) => ({
       ...state,
-      viewDate: dayjs(state.startDate, "MM-DD-YYYY")
-        .add(state.dateCount, "days")
-        .format("MM-DD-YYYY")
-    });
-  }, [state.dateCount, state.startDate]);
+      viewDate: newViewDate
+    }));
+  }, []);
+
+  const toggleIsPlaying = useCallback(() => {
+    setTimeout(() => {
+      setState((state) => {
+        return { ...state, isPlaying: !state.isPlaying };
+      });
+    }, 10);
+  }, []);
 
   // Viewport settings
   const INITIAL_VIEW_STATE = {
@@ -296,6 +300,7 @@ function App() {
               viewDate={state.viewDate}
               toggleIsPlaying={toggleIsPlaying}
               isPlaying={state.isPlaying}
+              setViewDate={setViewDate}
             />
             <DeckGL
               // debug={true}
