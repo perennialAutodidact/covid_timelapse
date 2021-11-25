@@ -78,58 +78,58 @@ const TimelineSlider = ({
     }
   })
 
-  const intervalRef = useRef()
-  const animationRef = useRef()
-  useEffect(() => {
-    if (isPlaying) {
-      intervalRef.current = setInterval(() => {
-        animationRef.current = requestAnimationFrame(() => {
-          onChange(++dateCount)
-          let newDate = dayjs('01-22-2020', 'MM-DD-YYYY')
-            .add(dateCount, 'days')
-            .format('MM-DD-YYYY')
-          setViewDate(newDate)
-        })
-      }, 200)
-    } else {
-      clearInterval(intervalRef.current)
-    }
-    return () =>
-      clearInterval(intervalRef.current) &&
-      cancelAnimationFrame(animationRef.current)
-  }, [isPlaying])
-
+  // const intervalRef = useRef()
   // const animationRef = useRef()
-  // const previousTimeRef = useRef()
   // useEffect(() => {
-  //   previousTimeRef.current = 0
   //   if (isPlaying) {
-  //     let animate = currentTime => {
-  //       if (
-  //         !previousTimeRef.current ||
-  //         currentTime - previousTimeRef.current >= 100
-  //       ) {
+  //     intervalRef.current = setInterval(() => {
+  //       animationRef.current = requestAnimationFrame(() => {
   //         onChange(++dateCount)
   //         let newDate = dayjs('01-22-2020', 'MM-DD-YYYY')
   //           .add(dateCount, 'days')
   //           .format('MM-DD-YYYY')
   //         setViewDate(newDate)
-  //         previousTimeRef.current = currentTime
-  //       }
-  //       animationRef.current = requestAnimationFrame(animate)
-  //     }
-
-  //     animationRef.current = requestAnimationFrame(animate)
+  //       })
+  //     }, 200)
+  //   } else {
+  //     clearInterval(intervalRef.current)
   //   }
   //   return () =>
-  //     animationRef.current && cancelAnimationFrame(animationRef.current)
+  //     clearInterval(intervalRef.current) &&
+  //     cancelAnimationFrame(animationRef.current)
   // }, [isPlaying])
+
+  const animationRef = useRef()
+  const previousTimeRef = useRef()
+  useEffect(() => {
+    previousTimeRef.current = 0
+    if (isPlaying) {
+      let animate = currentTime => {
+        if (
+          !previousTimeRef.current ||
+          currentTime - previousTimeRef.current >= 150
+        ) {
+          onChange(++dateCount)
+          let newDate = dayjs('01-22-2020', 'MM-DD-YYYY')
+            .add(dateCount, 'days')
+            .format('MM-DD-YYYY')
+          setViewDate(newDate)
+          previousTimeRef.current = currentTime
+        }
+        animationRef.current = requestAnimationFrame(animate)
+      }
+
+      animationRef.current = requestAnimationFrame(animate)
+    }
+    return () =>
+      animationRef.current && cancelAnimationFrame(animationRef.current)
+  }, [isPlaying])
 
   useEffect(() => {
     if (isPlaying && dateCount >= totalDays - 1) {
       toggleIsPlaying()
       cancelAnimationFrame(animationRef.current)
-      clearInterval(intervalRef.current)
+      // clearInterval(intervalRef.current)
     }
   }, [dateCount, totalDays, isPlaying])
 
@@ -183,7 +183,7 @@ const TimelineSlider = ({
           setTimeout(() => {
             if (isPlaying) {
               cancelAnimationFrame(animationRef.current)
-              clearInterval(intervalRef.current)
+              // clearInterval(intervalRef.current)
             }
             toggleIsPlaying()
           }, 10)
