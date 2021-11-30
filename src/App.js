@@ -2,7 +2,6 @@ import './App.css'
 
 import { useEffect, useState, useMemo, useCallback } from 'react'
 import dayjs from 'dayjs'
-import Map from './components/Map'
 // import worker from "./app/resources/worker";
 // import WebWorker from "./app/resources/workerSetup";
 import { getCSVData, addDataChunk } from './app/slices/covidSlice'
@@ -87,8 +86,10 @@ function App () {
 
     Promise.all(promises)
       .then(results => {
-        console.log(dateRange)
-        return workerApi.scrubData(results)
+        return workerApi
+          .scrubData(results)
+          .then(res => res)
+          .catch(err => console.log('err', err))
       })
       .then(dataChunk => {
         dispatch(addDataChunk({ data: dataChunk, dateRange }))
@@ -99,7 +100,6 @@ function App () {
   useEffect(() => {
     loadCSVs('01-22-2020')
   }, [])
-  
 
   //
   // If the viewDate is within a certain number of days from the lastLoadedDate,
@@ -117,26 +117,23 @@ function App () {
     } else {
       startDate = state.lastLoadedDate
     }
-
-    console.log('startDate', startDate)
-    
-    newEndDate = getEndDate(startDate)
-    .subtract(1, 'day')
-    .format('MM-DD-YYYY')
-    
-    console.log('newEndDate', newEndDate)
+    newEndDate = getEndDate(startDate).subtract(1, 'day')
+    const endDateIsYesterday = newEndDate.isSame(dayjs().subtract(1, 'day'))
 
     // distance from current viewDate to yesterday's date
     let distToYesterday = dayjs()
       .subtract(1, 'day')
       .diff(dayjs(newEndDate, 'MM-DD-YYYY'), 'days')
 
-    if (Math.abs(diff) < 190 && distToYesterday > 1) {
+    if (Math.abs(diff) < 190 && distToYesterday >= 1) {
       loadCSVs(state.lastLoadedDate)
+      if (endDateIsYesterday) {
+        return
+      }
       if (diff > 0) {
         setState(state => ({
           ...state,
-          lastLoadedDate: newEndDate
+          lastLoadedDate: newEndDate.format('MM-DD-YYYY')
         }))
       }
     }
