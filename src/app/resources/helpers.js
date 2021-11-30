@@ -1,6 +1,9 @@
 import dayjs from "dayjs";
+import isSameOrBefore from 'dayjs/plugin/isSameOrBefore' 
 import countryCoordinates from "./countryCoordinates";
 import stateCoordinates from "./stateCoordinates";
+
+dayjs.extend(isSameOrBefore)
 /**
  * Create an object where the keys are dates and the values are arrays containing COVID
  * data for that date from around the world
@@ -143,7 +146,7 @@ export const generateDateRange = (startDate, endDate) => {
   let dateRange = [];
   let currentDate = dayjs(startDate, "MM-DD-YYYY");
 
-  while (currentDate.isBefore(endDate)) {
+  while (currentDate.isSameOrBefore(endDate)) {
     dateRange.push(currentDate.format("MM-DD-YYYY"));
     currentDate = currentDate.add(1, "day");
   }
