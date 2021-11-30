@@ -9,8 +9,7 @@ import stateCoordinates from '../stateCoordinates'
  * @param {Object.<string, Object[]} _rawData
  * @returns object {'MM-DD-YYYY': [data objects]}
  */
-const scrubData = results => {
-  console.log(results.length)
+const scrubData = rawData => {
   const EXCLUDED_REGIONS = [
     'diamond princess',
     'grand princess',
@@ -30,9 +29,10 @@ const scrubData = results => {
   }
 
   let dataChunk = []
-  results.forEach(result => {
-    let _date = result.meta.arg
-    let _data = result.payload
+
+  rawData.forEach(rawDatum => {
+    let _date = rawDatum.meta.arg
+    let _data = rawDatum.payload
     const numberOfFields = Object.keys(_data[0]).length
     // ACCOMODATE FOR DIFFERENT FIELD NAMES IN FIRST FEW CSV FILES
     if (numberOfFields <= 8) {
@@ -52,8 +52,14 @@ const scrubData = results => {
 
     let newDateData = []
     _data.forEach(dataRow => {
+      // if (!dataRow[countryRegionFieldName]) {
+      //   console.log(countryRegionFieldName, dataRow);
+      // }
+
       if (
-        !EXCLUDED_REGIONS.includes(dataRow[countryRegionFieldName].toLowerCase())
+        !EXCLUDED_REGIONS.includes(
+          dataRow[countryRegionFieldName].toLowerCase()
+        )
       ) {
         let countryRegion = ''
 
@@ -129,9 +135,8 @@ const scrubData = results => {
         })
       }
     })
-    _data = newDateData
 
-    dataChunk.push(_data)
+    dataChunk.push(newDateData)
   })
   return dataChunk
 }
