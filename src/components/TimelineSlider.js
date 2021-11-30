@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react'
+import React, { useEffect, useLayoutEffect, useState, useRef } from 'react'
 import { styled } from '@mui/system'
 import { withStyles } from '@mui/styles'
 import { createTheme } from '@mui/material/styles'
@@ -101,7 +101,7 @@ const TimelineSlider = ({
 
   const animationRef = useRef()
   const previousTimeRef = useRef()
-  useEffect(() => {
+  useLayoutEffect(() => {
     previousTimeRef.current = 0
     if (isPlaying) {
       let animate = currentTime => {
