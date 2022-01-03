@@ -10,7 +10,6 @@ import PauseIcon from '@mui/icons-material/Pause'
 // import { setViewDate } from "../app/slices/covidSlice";
 import dayjs from 'dayjs'
 const TimelineSlider = ({
-  percentToEndDate,
   onChange,
   viewDate,
   dateCount,
@@ -85,7 +84,7 @@ const TimelineSlider = ({
   //     intervalRef.current = setInterval(() => {
   //       animationRef.current = requestAnimationFrame(() => {
   //         onChange(++dateCount)
-  //         let newDate = dayjs('01-22-2020', 'MM-DD-YYYY')
+  //         let newDate = dayjs('04-12-2020', 'MM-DD-YYYY')
   //           .add(dateCount, 'days')
   //           .format('MM-DD-YYYY')
   //         setViewDate(newDate)
@@ -107,26 +106,25 @@ const TimelineSlider = ({
       let animate = currentTime => {
         if (
           !previousTimeRef.current ||
-          currentTime - previousTimeRef.current >= 150
+          currentTime - previousTimeRef.current >= 100
         ) {
           onChange(++dateCount)
-          let newDate = dayjs('01-22-2020', 'MM-DD-YYYY')
+          let newDate = dayjs('04-12-2020', 'MM-DD-YYYY')
             .add(dateCount, 'days')
             .format('MM-DD-YYYY')
           setViewDate(newDate)
-          previousTimeRef.current = currentTime
+          previousTimeRef.current = 0
         }
-        animationRef.current = requestAnimationFrame(animate)
       }
 
       animationRef.current = requestAnimationFrame(animate)
     }
     return () =>
       animationRef.current && cancelAnimationFrame(animationRef.current)
-  }, [isPlaying])
+  })
 
   useEffect(() => {
-    if (isPlaying && dateCount >= totalDays - 1) {
+    if (isPlaying && dateCount >= totalDays) {
       toggleIsPlaying()
       cancelAnimationFrame(animationRef.current)
       // clearInterval(intervalRef.current)
@@ -150,7 +148,7 @@ const TimelineSlider = ({
           marks={[
             {
               value: 0,
-              label: 'January 22, 2020'
+              label: 'April 12, 2020'
             },
             {
               value: totalDays * 0.25
@@ -170,47 +168,15 @@ const TimelineSlider = ({
           ]}
           onChange={(event, newValue) => {
             onChange(newValue)
-            let newDate = dayjs('01-22-2020', 'MM-DD-YYYY')
-            .add(dateCount, 'days')
-            .format('MM-DD-YYYY')
+            let newDate = dayjs('04-12-2020', 'MM-DD-YYYY')
+              .add(dateCount, 'days')
+              .format('MM-DD-YYYY')
             console.log(newValue, newDate)
-          setViewDate(newDate)
+            setViewDate(newDate)
           }}
         ></SliderInput>
       </SliderContainer>
-      <Button
-        onClick={() => {
-          setTimeout(() => {
-            if (isPlaying) {
-              cancelAnimationFrame(animationRef.current)
-              // clearInterval(intervalRef.current)
-            }
-            toggleIsPlaying()
-          }, 10)
-        }}
-      >
-        {!isPlaying ? (
-          <PlayArrow
-            color='info'
-            sx={{
-              fontSize: '2rem',
-              '&:hover': {
-                cursor: 'pointer'
-              }
-            }}
-          />
-        ) : (
-          <PauseIcon
-            color='info'
-            sx={{
-              fontSize: '2rem',
-              '&:hover': {
-                cursor: 'pointer'
-              }
-            }}
-          />
-        )}
-      </Button>
+      
     </TimelineContainer>
   )
 }

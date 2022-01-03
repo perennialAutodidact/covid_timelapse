@@ -5,20 +5,14 @@ import dayjs from 'dayjs'
 // import worker from "./app/resources/worker";
 // import WebWorker from "./app/resources/workerSetup";
 import { getCSVData, addDataChunk } from './app/slices/covidSlice'
-import { useSelector, useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 
-import { generateDateRange, scrubData } from './app/resources/helpers'
+import { generateDateRange } from './app/resources/helpers'
 import DeckGL from '@deck.gl/react'
 import { ColumnLayer } from '@deck.gl/layers'
 import { DataFilterExtension } from '@deck.gl/extensions'
 import { useWorker } from './app/resources/webWorker/useScrubDataWorker'
-import {
-  COORDINATE_SYSTEM,
-  _GlobeView as GlobeView,
-  LightingEffect,
-  AmbientLight,
-  _SunLight as SunLight
-} from '@deck.gl/core'
+import { COORDINATE_SYSTEM, _GlobeView as GlobeView } from '@deck.gl/core'
 
 import { GeoJsonLayer } from '@deck.gl/layers'
 import { SimpleMeshLayer } from '@deck.gl/mesh-layers'
@@ -29,10 +23,9 @@ import TimelineSlider from './components/TimelineSlider'
 function App () {
   const dispatch = useDispatch()
 
-  const MAPBOX_ACCESS_TOKEN = process.env.REACT_APP_MAPBOX_ACCESS_TOKEN
-  const DATE_BLOCK_SIZE = 200 // number of days to load at a time
+  const DATE_BLOCK_SIZE = 100 // number of days to load at a time
 
-  const { startDate, dataChunks } = useSelector(state => state.covidData)
+  const dataChunks = useSelector(state => state.covidData.dataChunks)
 
   const [coords, setCoords] = useState({
     longitude: -96.4247,
@@ -43,18 +36,19 @@ function App () {
     dateCount: 0,
     totalDays: dayjs()
       .subtract(1, 'day')
-      .diff(dayjs('01-22-2020', 'MM-DD-YYYY'), 'days'),
-    startDate: '01-22-2020',
+      .diff(dayjs('04-12-2020', 'MM-DD-YYYY'), 'days'),
+    startDate: '04-12-2020',
     endDate: dayjs()
       .subtract(1, 'day')
       .format('MM-DD-YYYY'),
-    lastLoadedDate: dayjs('01-22-2020', 'MM-DD-YYYY')
+    lastLoadedDate: dayjs('04-12-2020', 'MM-DD-YYYY')
       .add(DATE_BLOCK_SIZE, 'days')
       .format('MM-DD-YYYY'), // for lazy loading
-    viewDate: '01-22-2020',
+    viewDate: '04-12-2020',
     isPlaying: false
   })
 
+  // create web worker for handling raw CSV data
   const { workerApi, cleanup } = useWorker()
 
   const getEndDate = _startDate => {
@@ -98,7 +92,7 @@ function App () {
   }
 
   useEffect(() => {
-    loadCSVs('01-22-2020')
+    loadCSVs('04-12-2020')
   }, [])
 
   //
@@ -118,19 +112,26 @@ function App () {
       startDate = state.lastLoadedDate
     }
     newEndDate = getEndDate(startDate).subtract(1, 'day')
-    const endDateIsYesterday = newEndDate.isSame(dayjs().subtract(1, 'day'))
+    const endDateIsYesterday = newEndDate.isSame(dayjs().subtract(2, 'day'))
+
+    if (endDateIsYesterday) {
+      return
+    }
+    console.log('newEndDate', newEndDate)
+    console.log('end', dayjs().subtract(1, 'day'))
 
     // distance from current viewDate to yesterday's date
     let distToYesterday = dayjs()
       .subtract(1, 'day')
       .diff(dayjs(newEndDate, 'MM-DD-YYYY'), 'days')
 
-    if (Math.abs(diff) < 190 && distToYesterday >= 1) {
-      loadCSVs(state.lastLoadedDate)
-      if (endDateIsYesterday) {
-        return
-      }
+    if (Math.abs(diff) < 200 && distToYesterday >= 1) {
+      console.log('diff', diff)
+      console.log('distToYesterday', distToYesterday)
+      console.log('endDateIsYesterday', endDateIsYesterday)
+      
       if (diff > 0) {
+        loadCSVs(state.lastLoadedDate)
         setState(state => ({
           ...state,
           lastLoadedDate: newEndDate.format('MM-DD-YYYY')
@@ -154,12 +155,10 @@ function App () {
   }, [])
 
   const toggleIsPlaying = useCallback(() => {
-    setTimeout(() => {
-      setState(state => {
-        return { ...state, isPlaying: !state.isPlaying }
-      })
-    }, 10)
-  }, [])
+    setState(state => {
+      return { ...state, isPlaying: !state.isPlaying }
+    })
+  }, [state.isPlaying])
 
   // Viewport settings
   const INITIAL_VIEW_STATE = {
@@ -197,7 +196,6 @@ function App () {
     ],
     []
   )
-
   const columnLayers = useMemo(
     () =>
       dataChunks.map((chunk, i) => {
@@ -213,7 +211,7 @@ function App () {
           extruded: true,
           elevationScale: 1,
           visible: isVisible,
-          getFillColor: d => [255, 255 - d.confirmed / 2 / 255, 0],
+          getFillColor: d => [255, 255 - d.confirmed / 50 / 255, 0],
           filled: true,
           radius: 1000,
           coverage: 100,
@@ -314,16 +312,9 @@ function App () {
           </>
         )}
       </div>
+      
     </>
   )
-}
-
-const mapStateToProps = state => {
-  return {
-    // viewDate: state.covidData.viewDate,
-    data: state.covidData.data
-    // startDate: state.covidData.startDate,
-  }
 }
 
 export default App

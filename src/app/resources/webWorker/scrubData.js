@@ -138,6 +138,7 @@ const scrubData = rawData => {
 
     dataChunk.push(newDateData)
   })
+
   return dataChunk
 }
 
