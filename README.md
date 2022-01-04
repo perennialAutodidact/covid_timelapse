@@ -1,6 +1,9 @@
 # Covid Timelapse
 A timelapse visualization of US Covid-19 data provided by the Center for Systems Science and Engineering (CSSE) at Johns Hopkins University 
 
+<img src='./covidtimelapse.gif' width=800/>
+
+
 The UI is still a bit buggy at times:
 
 - data is lazy-loaded in chunks so if the timeline goes faster than the data is loaded, no data will be displayed. All the data will be available on the second pass.
