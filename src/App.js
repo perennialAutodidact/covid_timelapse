@@ -2,8 +2,6 @@ import './App.css'
 
 import { useEffect, useState, useMemo, useCallback } from 'react'
 import dayjs from 'dayjs'
-// import worker from "./app/resources/worker";
-// import WebWorker from "./app/resources/workerSetup";
 import { getCSVData, addDataChunk } from './app/slices/covidSlice'
 import { useDispatch, useSelector } from 'react-redux'
 
@@ -129,7 +127,7 @@ function App () {
       console.log('diff', diff)
       console.log('distToYesterday', distToYesterday)
       console.log('endDateIsYesterday', endDateIsYesterday)
-      
+
       if (diff > 0) {
         loadCSVs(state.lastLoadedDate)
         setState(state => ({
@@ -216,34 +214,19 @@ function App () {
           radius: 1500,
           coverage: 100,
           getFilterValue: d => [
-            // d.isVisible,
-            // .5 is in the filterRange [0, 1] and will therefore get rendered. 10 will not.
-            // d.date === state.viewDate ? 0.5 : 10,
             d.confirmed !== null && d.confirmed > 0 ? 0.5 : 10
           ],
-          filterRange: [
-            // [0, 1],
-            [0, 1]
-          ],
+          filterRange: [[0, 1]],
           extensions: [new DataFilterExtension({ filterSize: 1 })],
-          // updateTriggers: {
-          //   getElevation: state.viewDate,
-          // },
           getPosition: d => {
             if (d.coordinates === undefined) {
-              // console.log("no coordinates:", d);
             } else {
-              return [d.coordinates.longitude, d.coordinates.latitude]
+              return d.coordinates
+                ? [d.coordinates.longitude, d.coordinates.latitude]
+                : null
             }
           },
           getElevation: d => d.confirmed
-          // transitions: {
-          //   getElevation: {
-          //     // enter: (to, from) => to,
-          //     duration: 2000,
-          //     // easing: d3.easeCubicInOut,
-          //   },
-          // },
         })
       }),
     [state.viewDate]
@@ -312,7 +295,6 @@ function App () {
           </>
         )}
       </div>
-      
     </>
   )
 }
