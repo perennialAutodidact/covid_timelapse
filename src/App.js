@@ -204,7 +204,7 @@ function App () {
         )
         let isVisible = chunk.dateRange.includes(state.viewDate)
         return new ColumnLayer({
-          id: `confirmed-cases-${i}`,
+          id: `cases-${i}`,
           data: filteredData[0], //chunk.data,
           diskResolution: 12,
           pickable: true,
@@ -213,7 +213,7 @@ function App () {
           visible: isVisible,
           getFillColor: d => [255, 255 - d.confirmed / 50 / 255, 0],
           filled: true,
-          radius: 1000,
+          radius: 1500,
           coverage: 100,
           getFilterValue: d => [
             // d.isVisible,

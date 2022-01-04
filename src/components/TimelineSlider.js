@@ -129,7 +129,7 @@ const TimelineSlider = ({
       cancelAnimationFrame(animationRef.current)
       // clearInterval(intervalRef.current)
     }
-  }, [dateCount, totalDays, isPlaying])
+  }, [dateCount, totalDays, isPlaying, toggleIsPlaying])
 
   return (
     <TimelineContainer>
@@ -176,7 +176,39 @@ const TimelineSlider = ({
           }}
         ></SliderInput>
       </SliderContainer>
-      
+      <Button
+        onClick={() => {
+          setTimeout(() => {
+            if (isPlaying) {
+              cancelAnimationFrame(animationRef.current)
+              // clearInterval(intervalRef.current)
+            }
+            toggleIsPlaying()
+          }, 10)
+        }}
+      >
+        {!isPlaying ? (
+          <PlayArrow
+            color='info'
+            sx={{
+              fontSize: '2rem',
+              '&:hover': {
+                cursor: 'pointer'
+              }
+            }}
+          />
+        ) : (
+          <PauseIcon
+            color='info'
+            sx={{
+              fontSize: '2rem',
+              '&:hover': {
+                cursor: 'pointer'
+              }
+            }}
+          />
+        )}
+      </Button>
     </TimelineContainer>
   )
 }
